@@ -5,6 +5,7 @@
     <title>Ask-Albert Login</title>
     <link rel='stylesheet prefetch' href='http://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css'>
     <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"> </script>
 </head>
 <body>
