@@ -29,7 +29,7 @@
                 <p>
                     Login to Ask Albert
                 </p>
-                <form>
+                <form action="home.php">
                     <ul>
                         <li>
                             <input type="text" placeholder="Username" />
