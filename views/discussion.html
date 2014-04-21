@@ -96,14 +96,14 @@
             </div>
             <div class="row">
                 <div class="col-lg-12">
-                    <p>Top Questions</p>
+                    <p>Recent Questions</p>
                   {% for item in replies %} 
                   <div class="row">
                       <div class="col-lg-3">
-                        <a href="#">{{Vote}}</a>
+                        <a href="#">{{item.Date}}</a>
                       </div>
                       <div class="col-lg-6">
-                        <p><a href="#">{{Title}}</a></p>
+                        <p><a href="#">{{item.Title}}</a></p>
                         <!--<input class="btn btn-inverse" type="button" value="{{qtag}}">-->
                       </div>
 

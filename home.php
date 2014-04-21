@@ -11,6 +11,13 @@ $twig = new Twig_Environment($loader, array());
 $db = new db;
 $db->connect();
 
+class foo extends ArrayObject{
+    function __destruct(){
+        echo 'dying:';
+        debug_print_backtrace();
+    }
+}
+
 if(!isset($_SESSION['username'])){
     if (isset($_REQUEST["login"])) {
         login();
@@ -18,36 +25,10 @@ if(!isset($_SESSION['username'])){
         echo $twig->render('login.html',array());
     }
 }else{
-    discussion();
+    showHome();
 }
 
-function discussion(){
-    global $twig;
-    global $db;
-    $replies = $db->get_recent_question();
-    //$replies = $db->get_reply_by_question($qid);
-    /*echo "<pre>";
-    print_r($replies);
-    die();*/
-    $params = array();
-    $params["userName"] = $_SESSION['username'];
-    $params["numberAnswers"] = count($replies);
-    $params["replies"] = array();
-    for($i=0;$i<$params["numberAnswers"];$i++){
-        $params["replies"][$i] = array();
-        //$params["replies"][i]["answerVotes"] = array();
-        //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
-        $params["replies"][$i]["Title"] = $replies[$i]["TITLE"];
-        $params["replies"][$i]["Date"] = $replies[$i]["DATE_TIME"];
-    }
-
- //   echo "<pre>";
- //   print_r($params);
- //   echo "</pre>";
-    
-    echo $twig->render('discussion.html',$params);
-}
-function discussion2(){
+function showHome(){
     global $twig;
     global $db;
     $replies = $db->get_top_question();
@@ -89,7 +70,7 @@ function login(){
         $_SESSION['id'] = $id["ID"];
         $_SESSION['username'] = $_REQUEST["username"];
         //Hack! change to show_home
-        ask_question();
+        show_question(1);
     }
 }
 /*$template = $twig->loadTemplate('template2.phtml');

@@ -194,7 +194,23 @@ class db {
 		return $question;
 	}
 	
-	
+
+	public function get_recent_question () {
+		$i = 0;
+		
+		$stid = oci_parse($this->connection, "select  * from
+												(select * from questions
+												order by date_time desc)
+												where rownum < 21");
+		oci_execute($stid);
+		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$return[$i] = $result;
+			$i++;
+		}
+		
+		return $return;
+	}
+
 	public function get_top_question () {
 		$i = 0;
 		
@@ -216,7 +232,20 @@ class db {
 		
 		return $return;
 	}
-	
+	public function leaderboard2 () {
+		$i = 0;
+		
+		$stid = oci_parse($this->connection, "select  * from
+												(select * from users
+												order by score desc)
+												where rownum < 21");
+		oci_execute($stid);
+		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$return[$i] = $result;
+			$i++;
+		}	
+		return $return;
+	}
 	public function leaderboard() {
 		$i = 0;
 		
@@ -242,7 +271,7 @@ class db {
 		$stid = oci_parse($this->connection, "select Q_userscore.Q_score + A_userscore.A_score as score, Q_userscore.asker as uzer from Q_userscore join A_userscore on Q_userscore.asker = A_userscore.replier order by score desc");
 		oci_execute($stid);
 		
-		
+
 		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
 			$return[$i] = $result;
 			$i++;
@@ -330,6 +359,7 @@ class db {
 			$return[$i] = $result;
 			$i++;
 		}
+		
 		$stid = oci_parse($this->connection,"drop view raw_stuff");
 		oci_execute($stid);
 		$stid = oci_parse($this->connection,"drop view tag_score");

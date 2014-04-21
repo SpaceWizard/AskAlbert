@@ -97,47 +97,45 @@
             <div class="row">
                 <div class="col-lg-5">
                     <p>Top Questions</p> 
+                  {% for item in replies %}
                   <div class="row">
                       <div class="col-lg-3">
-                        <a href="question.html">{{topqviews}}</a>
-                      </div>
-                      <div class="col-lg-3">
-                        <a href="question.html">{{topaviews}}</a>
+                        <a href="question.html">{{item.Vote}}</a>
                       </div>
                       <div class="col-lg-6">
-                        <p><a href="question.html">{{topqtitle}}</a></p>
-		                    <a class="qtag" href="">{{topqtag}}</a>
+                        <p><a href="question.html">{{item.Title}}</a></p>
                       </div>
 
                   </div>  
                   <hr />
+                  {% endfor %}
                 </div>
                 
                 <div class="col-lg-5">
                     <p>Recommended For You </p>
+                    {% for item in recommend %}
                     <div class="row">
                       <div class="col-lg-3">
-                        <a href="#">{{recommendViews}}</a>
-                      </div>
-                      <div class="col-lg-3">
-                        <a href="#">{{recommendAnswers}}</a>
+                        <a href="#">{{item.Score}}</a>
                       </div>
                       <div class="col-lg-6">
-                        <p><a href="#">{{recommendQTitle}}</a></p>
-                        <input class="btn btn-inverse" type="button" value="{{recommendQTag}}">
+                        <p><a href="#">{{item.Title}}</a></p>
                       </div>
 
                     </div>
                     <hr />
+                    {% endfor %}
                 </div>
                 
                 <div class="col-lg-2">
                     <p>Leader Board</p>
                     <div class="list-group">
+                      {% for item in leader %}
                       <a href="#" class="list-group-item">
-                        {{name}}
-                        <span class="badge">{{score}}</span>
+                        {{item.Name}}
+                        <span class="badge">{{item.Score}}</span>
                       </a>
+                      {% endfor %}
                     </div>
                 </div>
             </div>

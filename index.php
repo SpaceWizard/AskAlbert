@@ -25,10 +25,10 @@ if(!isset($_SESSION['username'])){
         echo $twig->render('login.html',array());
     }
 }else{
-    checkOtherRequests();
+    showHome();
 }
 
-function checkOtherRequests(){
+/*function checkOtherRequests(){
 //    echo "<pre>";
   //  print_r($_REQUEST);
     //echo "</pre>";
@@ -47,46 +47,43 @@ function checkOtherRequests(){
             post_answer();
             break;
     }
-}
+}*/
 
 
-function show_question($qid){
+function showHome(){
     global $twig;
     global $db;
-    $question = $db->get_question_by_id($qid);
-    $replies = $db->get_reply_by_question($qid);
+    $replies = $db->get_top_question();
+    $leader = $db->leaderboard2();
+    $recommend = $db->recommended_for_you($_SESSION['username']);
+    //$replies = $db->get_reply_by_question($qid);
     /*echo "<pre>";
     print_r($replies);
     die();*/
     $params = array();
     $params["userName"] = $_SESSION['username'];
-    $params["questionID"] = $qid;
-    $params["questionTitle"] = $question['TITLE'];
-    $params["questionContent"] = $question['CONTENT'];
-    $params["dateTime"] = $question['DATE_TIME'];
-    //$params["askerName"] = $question['ASKER_NAME'];
-    $params["askerID"] = $question['ASKER'];
-    $params["votes"] = $question['VOTEUP'] - $question['VOTEDOWN'];
     $params["numberAnswers"] = count($replies);
+    $params["numberLeader"] = count($leader);
+    $params["numberRecommend"] = count($recommend);
     $params["replies"] = array();
     for($i=0;$i<$params["numberAnswers"];$i++){
         $params["replies"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
-        $params["replies"][$i]["replyName"] = $replies[$i]["USER_NAME"];
-        $params["replies"][$i]["timeStamp"] = $replies[$i]["DATE_TIME"];
-        $params["replies"][$i]["answerContent"] = $replies[$i]["TEXT"];
+        $params["replies"][$i]["Question"] = $replies[$i]["QUESTION"];
+        $params["replies"][$i]["Title"] = $replies[$i]["TITLE"];
+        $params["replies"][$i]["Vote"] = $replies[$i]["VOTE"];
     }
-
+    for($i=0;$i<$params["numberLeader"];$i++){
+        $params["leader"][$i] = array();
+        $params["leader"][$i]["Name"] = $leader[$i]["USER_NAME"];
+        $params["leader"][$i]["Score"] = $leader[$i]["SCORE"];
+    }
  //   echo "<pre>";
  //   print_r($params);
  //   echo "</pre>";
     
-    echo $twig->render('question.html',$params);
-}
-
-function show_home(){
-
+    echo $twig->render('home.html',$params);
 }
 
 
