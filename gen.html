@@ -1,0 +1,99 @@
+<html lang="en"><head></head><body>
+
+
+    <meta charset="UTF-8">
+    <title>Ask-Albert Login</title>
+           <link rel="stylesheet prefetch" href="http://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css">
+       <link type="text/css" media="screen" rel="stylesheet" href="css/style.css">
+    
+    <!--<link rel='stylesheet prefetch' href='http://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css'>
+    <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" /> -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport">
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"> </script>
+
+
+
+
+    <div class="container">
+        <div class="flat-form">
+            <ul class="tabs">
+                <li>
+                    <a class="active" href="#login">Login</a>
+                </li>
+                <li>
+                    <a href="#register">Register</a>
+                </li>
+                <li>
+                    <a href="#reset">Reset Password</a>
+                </li>
+            </ul>
+            <div class="form-action show" id="login">
+                <h1>Login</h1>
+                <p>
+                    Login to Ask Albert
+                </p>
+                <form method="post" action="index.php">
+                    <ul>
+                        <li>
+                            <input type="text" name="username" placeholder="Username">
+                        </li>
+                        <li>
+                            <input type="password" name="password" placeholder="Password">
+                        </li>
+                        <li>
+                            <input type="submit" class="button" value="login" name="login">
+                        </li>
+                    </ul>
+                </form>
+            </div>
+            <!--/#login.form-action-->
+            <div class="form-action hide" id="register">
+                <h1>Register</h1>
+                <p>
+                    All the cool kids are talking to Albert. You should do too. Register Now.
+                </p>
+                <form>
+                    <ul>
+                        <li>
+                            <input type="text" placeholder="Username">
+                        </li>
+                        <li>
+                            <input type="password" placeholder="Password">
+                        </li>
+                        <li>
+                            <input type="submit" class="button" value="Sign Up">
+                        </li>
+                    </ul>
+                </form>
+            </div>
+            <!--/#register.form-action-->
+            <div class="form-action hide" id="reset">
+                <h1>Reset Password</h1>
+                <p>
+                    To reset your password enter your email and we'll send you a link to reset your password.
+                </p>
+                <form>
+                    <ul>
+                        <li>
+                            <input type="email" placeholder="Email">
+                        </li>
+                        <li>
+                            <input type="submit" class="button" value="Send">
+                        </li>
+                    </ul>
+                </form>
+            </div>
+            <!--/#register.form-action-->
+        </div>
+    </div>
+
+
+
+
+  <script src="http://codepen.io/assets/libs/fullpage/jquery.js"></script>
+
+  <script src="js/index.js"></script>
+
+
+
+</body></html>

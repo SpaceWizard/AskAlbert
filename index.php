@@ -1,96 +1,128 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Ask-Albert Login</title>
-    <link rel='stylesheet prefetch' href='http://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css'>
-    <link rel="stylesheet" href="css/style.css" media="screen" type="text/css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"> </script>
-</head>
-<body>
-<html lang="en">
-<body>
-    <div class="container">
-        <div class="flat-form">
-            <ul class="tabs">
-                <li>
-                    <a href="#login" class="active">Login</a>
-                </li>
-                <li>
-                    <a href="#register">Register</a>
-                </li>
-                <li>
-                    <a href="#reset">Reset Password</a>
-                </li>
-            </ul>
-            <div id="login" class="form-action show">
-                <h1>Login</h1>
-                <p>
-                    Login to Ask Albert
-                </p>
-                <form action="home.php">
-                    <ul>
-                        <li>
-                            <input type="text" placeholder="Username" />
-                        </li>
-                        <li>
-                            <input type="password" placeholder="Password" />
-                        </li>
-                        <li>
-                            <input type="submit" value="Login" class="button" />
-                        </li>
-                    </ul>
-                </form>
-            </div>
-            <!--/#login.form-action-->
-            <div id="register" class="form-action hide">
-                <h1>Register</h1>
-                <p>
-                    All the cool kids are talking to Albert. You should do too. Register Now.
-                </p>
-                <form>
-                    <ul>
-                        <li>
-                            <input type="text" placeholder="Username" />
-                        </li>
-                        <li>
-                            <input type="password" placeholder="Password" />
-                        </li>
-                        <li>
-                            <input type="submit" value="Sign Up" class="button" />
-                        </li>
-                    </ul>
-                </form>
-            </div>
-            <!--/#register.form-action-->
-            <div id="reset" class="form-action hide">
-                <h1>Reset Password</h1>
-                <p>
-                    To reset your password enter your email and we'll send you a link to reset your password.
-                </p>
-                <form>
-                    <ul>
-                        <li>
-                            <input type="email" placeholder="Email" />
-                        </li>
-                        <li>
-                            <input type="submit" value="Send" class="button" />
-                        </li>
-                    </ul>
-                </form>
-            </div>
-            <!--/#register.form-action-->
-        </div>
-    </div>
+<?php
 
-</body>
-</html>
+session_start();
 
-  <script src='http://codepen.io/assets/libs/fullpage/jquery.js'></script>
 
-  <script src="js/index.js"></script>
+require_once 'vendor/autoload.php';
+require_once 'db.php';
+$loader = new Twig_Loader_Filesystem('views');
+$twig = new Twig_Environment($loader, array());
 
-</body>
+$db = new db;
+$db->connect();
 
-</html>
+class foo extends ArrayObject{
+    function __destruct(){
+        echo 'dying:';
+        debug_print_backtrace();
+    }
+}
+
+if(!isset($_SESSION['username'])){
+    if (isset($_REQUEST["login"])) {
+        login();
+    }else{
+        echo $twig->render('login.html',array());
+    }
+}else{
+    checkOtherRequests();
+}
+
+function checkOtherRequests(){
+//    echo "<pre>";
+  //  print_r($_REQUEST);
+    //echo "</pre>";
+
+    if(!isset($_REQUEST["function"]));
+        show_question(1);
+
+    switch($_REQUEST["function"]){
+        case "home":
+            show_home();
+            break;
+        case "question":
+            show_question();
+            break;
+        case "post_answer":
+            post_answer();
+            break;
+    }
+}
+
+
+function show_question($qid){
+    global $twig;
+    global $db;
+    $question = $db->get_question_by_id($qid);
+    $replies = $db->get_reply_by_question($qid);
+    /*echo "<pre>";
+    print_r($replies);
+    die();*/
+    $params = array();
+    $params["userName"] = $_SESSION['username'];
+    $params["questionID"] = $qid;
+    $params["questionTitle"] = $question['TITLE'];
+    $params["questionContent"] = $question['CONTENT'];
+    $params["dateTime"] = $question['DATE_TIME'];
+    //$params["askerName"] = $question['ASKER_NAME'];
+    $params["askerID"] = $question['ASKER'];
+    $params["votes"] = $question['VOTEUP'] - $question['VOTEDOWN'];
+    $params["numberAnswers"] = count($replies);
+    $params["replies"] = array();
+    for($i=0;$i<$params["numberAnswers"];$i++){
+        $params["replies"][$i] = array();
+        //$params["replies"][i]["answerVotes"] = array();
+        //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
+        $params["replies"][$i]["replyName"] = $replies[$i]["USER_NAME"];
+        $params["replies"][$i]["timeStamp"] = $replies[$i]["DATE_TIME"];
+        $params["replies"][$i]["answerContent"] = $replies[$i]["TEXT"];
+    }
+
+ //   echo "<pre>";
+ //   print_r($params);
+ //   echo "</pre>";
+    
+    echo $twig->render('question.html',$params);
+}
+
+function show_home(){
+
+}
+
+
+function login(){
+    global $db;
+    global $twig;
+    $id = $db->authenticate($_REQUEST["username"],$_REQUEST["password"]);
+    if ($id == null) {
+        $msg = "access denied";
+        echo "denied";
+    } else {
+        //session_start();
+     //   $_SESSION['check'] = new foo();
+        $_SESSION['id'] = $id["ID"];
+        $_SESSION['username'] = $_REQUEST["username"];
+        //Hack! change to show_home
+        show_question(1);
+    }
+}
+/*$template = $twig->loadTemplate('template2.phtml');
+$params = array(
+    'name' => 'Krzysztof',
+    'friends' => array(
+        array(
+            'firstname' => 'John',
+            'lastname' => 'Smith'
+        ),
+        array(
+            'firstname' => 'Britney',
+            'lastname' => 'Spears'
+        ),
+        array(
+            'firstname' => 'Brad',
+            'lastname' => 'Pitt'
+        )
+    )
+);
+$template->display($params);*/
+?>
