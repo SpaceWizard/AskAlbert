@@ -31,7 +31,114 @@ class db {
 
 //$sentence takes string, $tags take array,$start and $end should be formatted like'10-APR-14',$session_user is user id
 
-	public function search($sentence = null, $tags = null, $session_user = null, $start = null, $end = null) {
+
+//$sentence takes string, $tags take array,$start and $end should be formatted like'10-APR-14',$session_user is user id
+	public function get_tag_by_question ($question) {
+		$i = 0;
+		//echo("here");
+		$query = "select description from (select description, question from category join belongs_to on category.id = belongs_to.category) where question = :question ";
+		$stid = oci_parse($this->connection,$query);
+		oci_bind_by_name($stid, ":question", $question);
+		oci_execute($stid);
+		
+		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$return[$i] = $result;
+			//echo($return[$i]);
+			$i++;
+		}
+		
+		return $return;
+		
+	}
+public function search($sentence = null, $tags = null, $session_user = null, $start = null, $end = null) {
+		$i = 0;
+		
+		$score = 0;
+		
+		$query = "create table temp as select 0 as score, id, title, content from questions";
+		
+		if($session_user != null || $start != null || $end != null) {
+			$query = $query . " where ";
+		}
+		
+		if($session_user != null) {
+			$user = intval($session_user);
+			$query = $query . "asker = " . $user;
+			if($start != null || $end != null) {
+				$query = $query . " and ";
+			}
+		}
+		
+		if($start != null) {
+			$start = $this->convert_date($start);
+			echo $start;
+		}
+		if($end != null) {
+			$end = $this->convert_date($end);
+			echo $end;
+		}
+		if($start != null && $end != null) {
+			$query = $query . "DATE_TIME > TO_TIMESTAMP('".$start."') and TO_TIMESTAMP('".$end."') > DATE_TIME";
+			$stid = oci_parse($this->connection,$query);
+			//oci_bind_by_name($stid, ":start", $start,SQLT_CHR);
+			//oci_bind_by_name($stid, ":end", $end,SQLT_CHR);
+		} else if($start != null && $end == null) {
+			$query = $query . "DATE_TIME > TO_TIMESTAMP('".$start."')";
+			$stid = oci_parse($this->connection,$query);
+			//oci_bind_by_name($stid, ":start", $start);
+		}else if($start == null && $end != null) {
+			$query = $query . "TO_TIMESTAMP('".$end."') > DATE_TIME";
+			$stid = oci_parse($this->connection,$query);
+			//oci_bind_by_name($stid, ":end", $end);
+		} else {
+			$stid = oci_parse($this->connection,$query);
+		}
+		
+		oci_execute($stid);
+		
+		if($sentence != null) {
+			$to_match = explode(" ",$sentence);
+			foreach($to_match as $sen_match) {
+				var_dump(filter_var($sen_match, FILTER_SANITIZE_STRING));
+				$stid = oci_parse($this->connection,"update temp set score = score+10 where title like '%" . $sen_match."%' ");
+				//oci_bind_by_name($stid, ":thingy", "%" . $sen_match . "%");
+				oci_execute($stid);
+				var_dump(filter_var($sen_match, FILTER_SANITIZE_STRING));
+				$stid = oci_parse($this->connection,"update temp set score = score+1 where content like '%" . $sen_match."%' ");
+				//oci_bind_by_name($stid, ":thingy", "%" . $sen_match . "%");
+				oci_execute($stid);
+			}
+		}
+		
+		if($tags != null) {
+			foreach($tags as $tag_match) {
+				var_dump(filter_var($tag_match, FILTER_SANITIZE_STRING));
+				echo $tag_match;
+				$stid = oci_parse($this->connection,"update temp set score = score+10 where temp.id in (select belongs_to.QUESTION from category join belongs_to on belongs_to.CATEGORY = category.id where category.DESCRIPTION like '%" . $tag_match . "%') ");
+				//oci_bind_by_name($stid, ":thingy", "%" . $tag_match . "%");
+				
+				
+				oci_execute($stid);
+			}
+		}
+		
+		$stid = oci_parse($this->connection,"select * from temp order by score desc");
+		oci_execute($stid);
+		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$return[$i] = $result;
+			$i++;
+		}
+		
+		$stid = oci_parse($this->connection,"drop table temp");
+		oci_execute($stid);
+		
+		return $return;
+		
+	}
+	
+//$sentence takes string, $tags take array,$start and $end should be formatted like'10-APR-14',$session_user is user id
+
+/*	public function search($sentence = null, $tags = null, $session_user = null, $start = null, $end = null) {
 		$i = 0;
 		
 		$score = 0;
@@ -51,7 +158,9 @@ class db {
 		}
 		
 		if($start != null) {
+			//echo($start);
 			$start = $this->convert_date($start);
+			//echo($start);
 		}
 		if($end != null) {
 			$end = $this->convert_date($end);
@@ -114,12 +223,12 @@ class db {
 		return $return;
 		
 	}
-	
+*/	
 	public function convert_date($date) {
 		$return = substr($date,8,2);
 		$convert = substr($date,5,2);
 		$return = $return . "-" . jdmonthname($convert,2);
-		$return = $return . "-" . substr($date,2,2);
+		$return = $return . "-" . substr($date,0,4);
 		return $return;
 	}
 
@@ -499,18 +608,27 @@ public function act_log($session_user) {
 	
 public function recommended_for_you ($session_user) {
 		$i = 0;
-		
+		//echo($session_user);
 		$user = intval($session_user);
 		
-		$stid = oci_parse($this->connection,"create view raw_stuff as select questions.id as question, belongs_to.category as tag, replies.replier as replier from belongs_to join questions on belongs_to.question = questions.id join replies on replies.reply_to = questions.id");
+		$stid = oci_parse($this->connection,"create view raw_stuff as 
+												select questions.id as question, 
+        										belongs_to.category as tag, 
+        										replies.replier as replier 
+												from belongs_to join questions on belongs_to.question = questions.id 
+                								join replies on replies.reply_to = questions.id");
 		oci_execute($stid);
 		$stid = oci_parse($this->connection,"create view tag_score as select count(*) as weight, replier, tag from raw_stuff group by replier, tag" );
 		oci_execute($stid);
 		
-		$stid = oci_parse($this->connection,"select sum(weight) as score, question, replier from tag_score join belongs_to on tag_score.tag = belongs_to.category where replier = " . $user . " group by question,replier order by replier, score desc");
+		$stid = oci_parse($this->connection,"select sum(weight) as score, question, replier, questions.TITLE
+											from tag_score join belongs_to on tag_score.tag = belongs_to.category 
+              								join questions on question = questions.id
+											where replier = " .$user. " group by question, replier, questions.TITLE order by replier, score desc");
 		oci_execute($stid);
 		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
 			$return[$i] = $result;
+		//	echo($return[$i]["TITLE"]);
 			$i++;
 		}
 		$stid = oci_parse($this->connection,"drop view raw_stuff");
@@ -520,8 +638,7 @@ public function recommended_for_you ($session_user) {
 		
 		return $return;
 		
-	}
-	
+	}	
 	//too long; didn't write, lol
 	/*public function fetch_quest_by_user($userid) {
 		$stid = oci_parse($this->connection,"select count(),asker from questions where asker = :userid and password = :password");

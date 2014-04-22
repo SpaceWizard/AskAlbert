@@ -117,8 +117,8 @@
                       <div class="col-lg-12">
                         <p><a style="cursor:pointer" onclick="clicked(this.id);" id="{{item.Question}}">{{item.Title}}</a></p>
                         <input type="hidden" name="qid" value="{{item.Question}}" style="visibility:hidden;">
-						{% for tag in tags %}
-						<a class="qtag">{{item.Tag}}</a>
+						{% for tag in item.tags %}
+						<a class="qtag">{{tag}}</a>
 						{% endfor %}                        
                       </div>
                       </form>
@@ -132,10 +132,12 @@
                     <p>Recommended For You </p>
                     {% for item in recommend %}
                     <div class="row">
+                      <form id="{{item.Question}}" action="display_question.php">
                       <div class="col-lg-12">
-                        <p><a href="#" onclick="clicked();">{{item.Title}}</a></p>
+                        <p><a style="cursor:pointer" onclick="clicked(this.id);" id="{{item.Question}}">{{item.Title}}</a></p>
+                      	<input type="hidden" name="qid" value="{{item.Question}}" style="visibility:hidden;">
                       </div>
-
+                      </form>
                     </div>
                     <hr />
                     {% endfor %}
