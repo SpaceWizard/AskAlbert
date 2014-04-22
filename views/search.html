@@ -25,6 +25,10 @@
         document.getElementById(qid).submit();
 //        id = qid.id;
       }
+      function search(id){
+        alert(id);
+        document.getElementById(id).submit();
+      }
     </script>
   </head>
   <body>
@@ -107,11 +111,17 @@
                   {% for item in replies %} 
                   <div class="row">
                     <form id="{{item.Question}}" action="display_question.php">
-                      <div class="col-lg-3">
-                        <a style="cursor:pointer" onclick="clicked(this.id)" id="{{item.Question}}">{{item.Date}}</a>
-                      </div>
-                      <div class="col-lg-6">
+                      <div class="col-lg-12">
                         <p><a style="cursor:pointer" onclick="clicked(this.id)" id="{{item.Question}}">{{item.Title}}</a></p>
+                        <p>
+                        
+                        {% for tag in item.tags %}
+                        
+                        <a class="qtag">{{tag}}</a>
+                        <input type="hidden" name="tags" value="{{tag}}">
+                        
+                        {% endfor %}
+                        </p>
                         <!--<input class="btn btn-inverse" type="button" value="{{qtag}}">-->
                       </div>
                     <input type="hidden" name="qid" value="{{item.Question}}" style="visibility:hidden;">  

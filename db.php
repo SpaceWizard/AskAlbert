@@ -75,7 +75,7 @@ public function search($sentence = null, $tags = null, $session_user = null, $st
 		}
 		if($end != null) {
 			$end = $this->convert_date($end);
-			echo $end;
+		//	echo $end;
 		}
 		if($start != null && $end != null) {
 			$query = $query . "DATE_TIME > TO_TIMESTAMP('".$start."') and TO_TIMESTAMP('".$end."') > DATE_TIME";
@@ -113,8 +113,8 @@ public function search($sentence = null, $tags = null, $session_user = null, $st
 		if($tags != null) {
 			$pieces = explode(",", $tags);
 			foreach($pieces as $tag_match) {
-				var_dump(filter_var($tag_match, FILTER_SANITIZE_STRING));
-				echo $tag_match;
+				//var_dump(filter_var($tag_match, FILTER_SANITIZE_STRING));
+		//		echo $tag_match;
 				$stid = oci_parse($this->connection,"update temp set score = score+10 where temp.id in (select belongs_to.QUESTION from category join belongs_to on belongs_to.CATEGORY = category.id where category.DESCRIPTION like '%" . $tag_match . "%') ");
 				//oci_bind_by_name($stid, ":thingy", "%" . $tag_match . "%");
 				
@@ -233,6 +233,16 @@ public function search($sentence = null, $tags = null, $session_user = null, $st
 		return $return;
 	}
 
+public function get_user_name_by_id($id){
+//	echo($id);
+$stid = oci_parse($this->connection,"select user_name from users where id=:id");
+oci_bind_by_name($stid, ":id", $id);
+oci_execute($stid);
+
+$result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS) ;
+//print_r($result);
+return $result['USER_NAME'];
+}
 
 public function get_id($name){
 	$stid = oci_parse($this->connection, "select ID from USERS WHERE USER_NAME =:name");

@@ -31,8 +31,9 @@ $qid = $_GET["qid"] ;
     $params["questionTitle"] = $question['TITLE'];
     $params["questionContent"] = $question['CONTENT'];
     $params["dateTime"] = $question['DATE_TIME'];
-    //$params["askerName"] = $question['ASKER_NAME'];
-    $params["askerID"] = $question['ASKER'];
+    
+   // $params["askerID"] = $question['ASKER'];
+    $params["askerName"] = $db->get_user_name_by_id($question['ASKER']);
     $params["votes"] = $question['VOTEUP'] - $question['VOTEDOWN'];
     $params["numberAnswers"] = count($replies);
     $params["replies"] = array();
