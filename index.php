@@ -138,7 +138,7 @@ function login(){
         $_SESSION['id'] = $id["ID"];
         $_SESSION['username'] = $_REQUEST["username"];
         //Hack! change to show_home
-        show_question(1);
+        showHome();
     }
 }
 /*$template = $twig->loadTemplate('template2.phtml');
