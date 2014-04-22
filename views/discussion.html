@@ -112,6 +112,9 @@
                       </div>
                       <div class="col-lg-6">
                         <p><a style="cursor:pointer" onclick="clicked(this.id)" id="{{item.Question}}">{{item.Title}}</a></p>
+                        {% for tag in item.tags %}
+                        <a class="qtag">{{tag}}</a>
+                        {% endfor %} 
                         <!--<input class="btn btn-inverse" type="button" value="{{qtag}}">-->
                       </div>
                     <input type="hidden" name="qid" value="{{item.Question}}" style="visibility:hidden;">  

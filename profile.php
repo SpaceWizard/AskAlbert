@@ -7,7 +7,7 @@ require_once 'vendor/autoload.php';
 require_once 'db.php';
 $loader = new Twig_Loader_Filesystem('views');
 $twig = new Twig_Environment($loader, array());
-
+$limit=20;
 $db = new db;
 $db->connect();
 
@@ -37,29 +37,59 @@ function profile(){
     $params["numberAnswers"] = count($active);
     //echo($params["numberAnswers"]);
     $params["activity"] = array();
-    for($i=0;$i<7;$i++){
+    $params["tags"] = array();
+    for($i=0;$i<$params["numberAnswers"];$i++){
         $params["activity"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
         $params["activity"][$i]["Act"] = $active[$i]["ACT"];
         $params["activity"][$i]["Date"] = substr(($active[$i]["DATE_TIME"]),0,10);
+        if($i>20){
+            break;
+        }
     }
     //echo(count($question));
     $params["questionsAsked"]=array();
-    for($i=0;$i<8;$i++){
+    for($i=0;$i<count($question);$i++){
         $params["questionsAsked"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
         $params["questionsAsked"][$i]["Title"] = $question[$i]["TITLE"];
         $params["questionsAsked"][$i]["Id"]= $question[$i]["ID"];
+        $gettags = $db->get_tag_by_question($question[$i]["ID"]);
+        $tag_num = count($gettags);
+        $params["questionsAsked"][$i]["tags"] = array();
+        for($j = 0;$j<$tag_num;$j++){
+            //$params["tags"][$j]["Desc"] = array();
+            $params["questionsAsked"][$i]["tags"][$j]=$gettags[$j]["DESCRIPTION"];
+            //$params["tags"][$j]["Desc"] = $gettags[$j]["DESCRIPTION"];
+            
+
+        }
+        if($i>20){
+            break;
+        }
     }
     $params["answered"]=array();
-    for($i=0;$i<8;$i++){
+    for($i=0;$i<count($userAnswer);$i++){
         $params["answered"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
-        $params["answered"][$i]["Title"] = $question[$i]["TITLE"];
-        $params["answered"][$i]["Id"]= $question[$i]["ID"];
+        $params["answered"][$i]["Title"] = $userAnswer[$i]["TITLE"];
+        $params["answered"][$i]["Id"]= $userAnswer[$i]["ID"];
+        $gettags = $db->get_tag_by_question($userAnswer[$i]["ID"]);
+        $tag_num = count($gettags);
+        $params["answered"][$i]["tags"] = array();
+        for($j = 0;$j<$tag_num;$j++){
+            //$params["tags"][$j]["Desc"] = array();
+            $params["answered"][$i]["tags"][$j]=$gettags[$j]["DESCRIPTION"];
+            //$params["tags"][$j]["Desc"] = $gettags[$j]["DESCRIPTION"];
+            
+
+        }
+        if($i>20){
+            break;
+        }
     }
     echo $twig->render('profile.html',$params);
 }

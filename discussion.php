@@ -33,11 +33,22 @@ function discussion(){
     $params["userName"] = $_SESSION['username'];
     $params["numberAnswers"] = count($replies);
     $params["replies"] = array();
+    $params["tags"] = array();
     for($i=0;$i<$params["numberAnswers"];$i++){
         $params["replies"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
         $params["replies"][$i]["Question"] = $replies[$i]["ID"];
+        $gettags = $db->get_tag_by_question($replies[$i]["ID"]);
+        $tag_num = count($gettags);
+        $params["replies"][$i]["tags"] = array();
+        for($j = 0;$j<$tag_num;$j++){
+            //$params["tags"][$j]["Desc"] = array();
+            $params["replies"][$i]["tags"][$j]=$gettags[$j]["DESCRIPTION"];
+            //$params["tags"][$j]["Desc"] = $gettags[$j]["DESCRIPTION"];
+            
+
+        }
         $params["replies"][$i]["Title"] = $replies[$i]["TITLE"];
         $params["replies"][$i]["Date"] = $replies[$i]["DATE_TIME"];
     }

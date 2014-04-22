@@ -38,8 +38,19 @@ function show_question($qid){
     print_r($replies);
     die();*/
     $params = array();
+    $params["tags"] = array();
     $params["userName"] = $_SESSION['username'];
     $params["questionID"] = $qid;
+     $gettags = $db->get_tag_by_question($qid);
+     $tag_num = count($gettags);
+     $params["tags"] = array();
+        for($j = 0;$j<$tag_num;$j++){
+            //$params["tags"][$j]["Desc"] = array();
+            $params["tags"][$j]=$gettags[$j]["DESCRIPTION"];
+            //$params["tags"][$j]["Desc"] = $gettags[$j]["DESCRIPTION"];
+            
+
+        }
     $params["questionTitle"] = $question['TITLE'];
     $params["questionContent"] = $question['CONTENT'];
     $params["dateTime"] = $question['DATE_TIME'];

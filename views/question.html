@@ -22,7 +22,28 @@
       <script src="js/html5shiv.js"></script>
       <script src="js/respond.min.js"></script>
     <![endif]-->
-
+    <script>
+      function clicked(qid){
+        document.getElementById("up_vote").submit();
+//        id = qid.id;
+    //    alert(qid);
+      }
+    </script>
+    <script>
+      function clicked_down(qid){
+        document.getElementById("down_vote").submit();
+//        id = qid.id;
+    //    alert(qid);
+      }
+    </script>
+    <script>
+    function rep_down(){
+      document.getElementById("reply_down").submit();
+    }
+    function rep_down(){
+      document.getElementById("reply_up").submit();
+    }
+    </script>
   </head>
   <body>
  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -99,24 +120,33 @@
             <div class="row">
               <div class="col-lg-12">
                 <p><h4><a href="#">{{questionTitle}}</a></h4></p>
+
               </div>
             </div>
                 <div class="row">
                   <div class="col-lg-2 rating">
                       <div class="col-lg-6">
                         <p>
-                            <a href="#">
+                          <form id="up_vote" action="post_question_vote.php">
+                            <a style="cursor:pointer" onclick="clicked(this.id)" id="{{questionID}}">
                               <span class="fa-stack">
                                 <i class="fa fa-thumbs-up fa-stack-1x"></i>
                               </span>
-                              </a>
+                            </a>
+                            <input type="hidden" name="qID" value="{{questionID}}">
+                            <input type="hidden" name="vote" value="1">
+                          </form>
                         </p>
                         <p>
-                              <a href="#">
+                        <form id="down_vote" action="post_question_vote.php">
+                              <a style="cursor:pointer" onclick="clicked_down(this.id)" id="{{questionID}}">
                               <span class="fa-stack">
                                 <i class="fa fa-thumbs-down fa-stack-1x"></i>
                               </span>
                             </a>
+                            <input type="hidden" name="qID" value="{{questionID}}">
+                            <input type="hidden" name="vote" value="-1">
+                        </form>
                         </p>
                       </div>
                       <div class="col-lg-6">
@@ -135,6 +165,11 @@
                               <p>
                                 {{questionContent}}
                               </p>
+                              <p>
+                                {% for tag in tags %}
+                                <a class="qtag">{{tag}}</a>
+                                {% endfor %}
+                                </p> 
                             </div>
                     </div>
                     
@@ -157,17 +192,26 @@
                       <div class="col-lg-2 rating">
                       <div class="col-lg-6">
                         <p>
-                            <a href="#">
+                          <form action="post_reply_vote.php" id="reply_up">
+                            <a style="cursor:pointer" onclick="rep_down()" id="{{questionID}}">
                               <span class="fa-stack">
                                 <i class="fa fa-thumbs-up fa-stack-1x"></i>
                               </span>
-                              </a>
+                            </a>
+                            <input type="hidden" name='vote' value="1">
+                            <input type="hidden" name='qID' value="{{questionID}}">
+                            <input type="hidden" name="replyID" value="{{item.replyID}}">
+                          </form>
                         </p>
                         <p>
-                              <a href="#">
+                          <form action="post_reply_vote.php" id="reply_down">
+                            <a style="cursor:pointer" onclick="rep_down()" id="{{questionID}}">
                               <span class="fa-stack">
                                 <i class="fa fa-thumbs-down fa-stack-1x"></i>
                               </span>
+                              <input type="hidden" name='vote' value="-1">
+                              <input type="hidden" name='qID' value="{{questionID}}">
+                              <input type="hidden" name="replyID" value="{{item.replyID}}">
                             </a>
                         </p>
                       </div>

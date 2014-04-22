@@ -11,23 +11,13 @@ $twig = new Twig_Environment($loader, array());
 $db = new db;
 $db->connect();
 
-class foo extends ArrayObject{
-    function __destruct(){
-        echo 'dying:';
-        debug_print_backtrace();
-    }
+$user = $_REQUEST['userName'];
+$pass = $_REQUEST['password'];
+//echo($user);
+$result = $db -> add_user($user,$pass);
+if($result==true){
+    login($user,$pass);
 }
-
-if(!isset($_SESSION['username'])){
-    if (isset($_REQUEST["login"])) {
-        login();
-    }else{
-        echo $twig->render('login.html',array());
-    }
-}else{
-    showHome();
-}
-
 /*function checkOtherRequests(){
 //    echo "<pre>";
   //  print_r($_REQUEST);
@@ -48,9 +38,25 @@ if(!isset($_SESSION['username'])){
             break;
     }
 }*/
+function login($user,$password){
+    global $db;
+    global $twig;
+    $id = $db->authenticate($user,$password);
+    if ($id == null) {
+        $msg = "access denied";
+        echo "denied";
+    } else {
+        //session_start();
+     //   $_SESSION['check'] = new foo();
+        $_SESSION['id'] = $id["ID"];
+        $_SESSION['username'] = $user;
+        //Hack! change to show_home
+        showHome($user);
+    }
+}
 
 
-function showHome(){
+function showHome($user){
     global $twig;
     global $db;
     $replies = $db->get_top_question();
@@ -64,7 +70,7 @@ function showHome(){
     print_r($replies);
     die();*/
     $params = array();
-    $params["userName"] = $_SESSION['username'];
+    $params["userName"] = $user;
     $params["numberAnswers"] = count($replies);
     $params["numberLeader"] = count($leader);
     $params["numberRecommend"] = count($recommend);
@@ -103,17 +109,7 @@ function showHome(){
     for($i=0;$i<21;$i++){
         $params["recommend"][$i] = array();
         $params["recommend"][$i]["Question"] = $recommend[$i]["QUESTION"];
-        $gettags = $db->get_tag_by_question($recommend[$i]["QUESTION"]);
-        $tag_num = count($gettags);
-  		$params["recommend"][$i]["tags"] = array();
-        for($j = 0;$j<$tag_num;$j++){
-            //$params["tags"][$j]["Desc"] = array();
-            $params["recommend"][$i]["tags"][$j]=$gettags[$j]["DESCRIPTION"];
-            //$params["tags"][$j]["Desc"] = $gettags[$j]["DESCRIPTION"];
-            
 
-        }
-      
         $params["recommend"][$i]["Title"] = $recommend[$i]["TITLE"];
      //   $params["recommend"][$i]["Vote"] = $leader[$i]["VOTE"];
     }
@@ -125,22 +121,6 @@ function showHome(){
 }
 
 
-function login(){
-    global $db;
-    global $twig;
-    $id = $db->authenticate($_REQUEST["username"],$_REQUEST["password"]);
-    if ($id == null) {
-        $msg = "access denied";
-        echo "denied";
-    } else {
-        //session_start();
-     //   $_SESSION['check'] = new foo();
-        $_SESSION['id'] = $id["ID"];
-        $_SESSION['username'] = $_REQUEST["username"];
-        //Hack! change to show_home
-        show_question(1);
-    }
-}
 /*$template = $twig->loadTemplate('template2.phtml');
 $params = array(
     'name' => 'Krzysztof',

@@ -71,7 +71,7 @@ public function search($sentence = null, $tags = null, $session_user = null, $st
 		
 		if($start != null) {
 			$start = $this->convert_date($start);
-			echo $start;
+		//	echo $start;
 		}
 		if($end != null) {
 			$end = $this->convert_date($end);
@@ -243,7 +243,7 @@ public function get_id($name){
 }
 public function get_ques_user_ans($replier){
 		$i = 0;
-		
+		$return=array();
 		$stid = oci_parse($this->connection, "select distinct questions.id, questions.title from replies, questions 
 								where replier = :replier and replies.REPLY_TO = questions.ID order by questions.ID desc");
 		oci_bind_by_name($stid, ":replier", $replier);
@@ -435,7 +435,7 @@ public function act_log($session_user) {
 		
 		oci_execute($stid);
 		
-		
+		$return=array();		
 		while (($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) != false)
 		{
 			$return[$i] = $result;
@@ -445,25 +445,71 @@ public function act_log($session_user) {
 		return $return;
 	}
 	
-	public function vote_question($voter,$question,$vote) {
-		
+		public function vote_question($voter,$question,$vote) {
+	//	echo($voter);	
 		$stid = oci_parse($this->connection,"select * from Vote_Question where Voter = :voter and Question = :question");
 		oci_bind_by_name($stid, ":voter", $voter);
 		oci_bind_by_name($stid, ":question", $question);
 		oci_execute($stid);
-		if(oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
-			return false;
+		$flag = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS);
+		if($flag) {
+			if($flag['VOTE']==$vote){
+				return false;
+			} else {
+				$stid = oci_parse($this->connection,"update Vote_Question set Vote = :vote where Voter = :voter and Question = :question");
+				oci_bind_by_name($stid, ":voter", $voter);
+				oci_bind_by_name($stid, ":question", $question);
+				oci_bind_by_name($stid, ":vote", $vote);
+				oci_execute($stid);
+			}
+		} else {
+			$stid = oci_parse($this->connection,"insert into Vote_Question (Voter,Question,Vote) values (:voter,:question," . $vote . ")");
+			oci_bind_by_name($stid, ":voter", $voter);
+			oci_bind_by_name($stid, ":question", $question);
+			oci_execute($stid);
+		}
+		//update score by 10 for the user who ask the question
+		$stid = oci_parse($this->connection,"update users set score = score + :vote * 10 where id = (select asker from questions where questions.ID = :qid)");
+		oci_bind_by_name($stid, ":qid", $question);
+		oci_bind_by_name($stid, ":vote", $vote);
+		oci_execute($stid);
+				
+		return true;	
+		//$stid = oci_parse($this->connection,"insert into Vote_Question (Voter,Question,Vote) values");		
+	}
+	
+	public function vote_reply($voter,$reply,$vote) {
+		
+		$stid = oci_parse($this->connection,"select * from Vote_Reply where Voter = :voter and Reply = :reply");
+		oci_bind_by_name($stid, ":voter", $voter);
+		oci_bind_by_name($stid, ":reply", $reply);
+		oci_execute($stid);
+		$flag = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS);
+		if($flag) {
+			if($flag['VOTE']==$vote){
+				return false;
+			} else {
+				$stid = oci_parse($this->connection,"update Vote_Reply set Vote = :vote where Voter = :voter and Reply = :reply");
+				oci_bind_by_name($stid, ":voter", $voter);
+				oci_bind_by_name($stid, ":reply", $reply);
+				oci_bind_by_name($stid, ":vote", $vote);
+				oci_execute($stid);
+			}
+		} else {
+			$stid = oci_parse($this->connection,"insert into Vote_Reply (Voter,Reply,Vote) values (:voter,:reply," . $vote . ")");
+			oci_bind_by_name($stid, ":voter", $voter);
+			oci_bind_by_name($stid, ":reply", $reply);
+			oci_execute($stid);
 		}
 		
-		$stid = oci_parse($this->connection,"insert into Vote_Question (Voter,Question,Vote) values (:voter,:question," . $vote . ")");
-		oci_bind_by_name($stid, ":voter", $voter);
-		oci_bind_by_name($stid, ":question", $question);
+		//add score by 5 for user who make this reply
+		$stid = oci_parse($this->connection,"update users set score = score + :vote * 5 where id = (select replier from replies where replies.ID = :rid)");
+		oci_bind_by_name($stid, ":rid", $reply);
+		oci_bind_by_name($stid,":vote",$vote);
 		oci_execute($stid);
 		
-		return true;
-		
-		//$stid = oci_parse($this->connection,"insert into Vote_Question (Voter,Question,Vote) values");
-		
+		return true;	
+		//$stid = oci_parse($this->connection,"insert into Vote_Question (Voter,Question,Vote) values");		
 	}
 	
 	public function post_answer ($question,$answer,$replier) {
@@ -593,7 +639,7 @@ public function act_log($session_user) {
 		$id = oci_fetch_array($stid,OCI_NUM+OCI_RETURN_NULLS);
 	//	print_r($id);
 		$neo_id = $id[0]+1;
-		$stid = oci_parse($this->connection,"insert into users (ID, User_Name, Password, Join_Date, User_type) values (:id, :name,:password, CURRENT_TIMESTAMP, 0)");
+		$stid = oci_parse($this->connection,"insert into users (ID, User_Name, Password, Join_Date, User_type,SCORE) values (:id, :name,:password, CURRENT_TIMESTAMP, 0,0)");
 		
 		oci_bind_by_name($stid, ":id", $neo_id);
 		oci_bind_by_name($stid, ":name", $name);
@@ -626,6 +672,7 @@ public function recommended_for_you ($session_user) {
               								join questions on question = questions.id
 											where replier = " .$user. " group by question, replier, questions.TITLE order by replier, score desc");
 		oci_execute($stid);
+		$return=array();
 		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
 			$return[$i] = $result;
 		//	echo($return[$i]["TITLE"]);

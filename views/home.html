@@ -136,6 +136,10 @@
                       <div class="col-lg-12">
                         <p><a style="cursor:pointer" onclick="clicked(this.id);" id="{{item.Question}}">{{item.Title}}</a></p>
                       	<input type="hidden" name="qid" value="{{item.Question}}" style="visibility:hidden;">
+                          {% for tag in item.tags %}
+                          <a class="qtag">{{tag}}</a>
+                          {% endfor %}                        
+                        
                       </div>
                       </form>
                     </div>
