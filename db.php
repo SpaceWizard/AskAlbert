@@ -52,7 +52,7 @@ class db {
 	}
 public function search($sentence = null, $tags = null, $session_user = null, $start = null, $end = null) {
 		$i = 0;
-		
+	//	print_r($tags);
 		$score = 0;
 		
 		$query = "create table temp as select 0 as score, id, title, content from questions";
@@ -111,7 +111,8 @@ public function search($sentence = null, $tags = null, $session_user = null, $st
 		}
 		
 		if($tags != null) {
-			foreach($tags as $tag_match) {
+			$pieces = explode(",", $tags);
+			foreach($pieces as $tag_match) {
 				var_dump(filter_var($tag_match, FILTER_SANITIZE_STRING));
 				echo $tag_match;
 				$stid = oci_parse($this->connection,"update temp set score = score+10 where temp.id in (select belongs_to.QUESTION from category join belongs_to on belongs_to.CATEGORY = category.id where category.DESCRIPTION like '%" . $tag_match . "%') ");
@@ -424,8 +425,42 @@ public function act_log($session_user) {
 		
 		return $return;
 	}
+
+public function get_reply_by_question ($id) {
+
+$i = 0;
+
+$stid = oci_parse($this->connection,"create view upvote_reply as select count(Voter) as inc_score,Reply from Vote_Reply where Vote = 1 group by Reply");
+oci_execute($stid);
+$stid = oci_parse($this->connection,"create view downvote_reply as select count(Voter) as dec_score,Reply from Vote_Reply where Vote = 0 group by Reply");
+oci_execute($stid);
+
+$stid = oci_parse($this->connection,"select USER_NAME,DATE_TIME,TEXT,users.ID,inc_score as voteup, dec_score as votedown 
+from replies left join users on replies.replier=users.ID 
+left join upvote_reply on replies.ID = upvote_reply.reply
+left join downvote_reply on replies.ID = downvote_reply.reply
+where reply_to = :id");
+
+oci_bind_by_name($stid, ":id", $id);
+
+oci_execute($stid);
+
+$return = array();
+while (($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) != false)
+{
+$return[$i] = $result;
+$i++;
+}
+
+$stid = oci_parse($this->connection,"drop view upvote_reply");
+oci_execute($stid);
+$stid = oci_parse($this->connection,"drop view downvote_reply");
+oci_execute($stid);
+
+return $return;
+}
 	
-	public function get_reply_by_question ($id) {
+/*	public function get_reply_by_question ($id) {
 	
 		$i = 0;
 	
@@ -444,7 +479,7 @@ public function act_log($session_user) {
 		
 		return $return;
 	}
-	
+	*/
 		public function vote_question($voter,$question,$vote) {
 	//	echo($voter);	
 		$stid = oci_parse($this->connection,"select * from Vote_Question where Voter = :voter and Question = :question");

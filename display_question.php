@@ -43,6 +43,7 @@ $qid = $_GET["qid"] ;
         $params["replies"][$i]["replyName"] = $replies[$i]["USER_NAME"];
         $params["replies"][$i]["timeStamp"] = $replies[$i]["DATE_TIME"];
         $params["replies"][$i]["answerContent"] = $replies[$i]["TEXT"];
+        $params["replies"][$i]["votes"] = $replies[$i]["VOTEUP"]-$replies[$i]["VOTEDOWN"];
     }
 
  //   echo "<pre>";
