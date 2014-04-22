@@ -10,26 +10,14 @@ $twig = new Twig_Environment($loader, array());
 
 $db = new db;
 $db->connect();
-$tags = $_REQUEST['QuestionTags'];
 
 if(isset($_POST['submit']))
 {
    post_question();
 } 
 
-function post_question(){
-	global $db;
-    $params = array();
-    $params["userName"] = $_SESSION['username'];
-    $tag = $_REQUEST['tags'];
- //   echo($tag);
-	$replyID = $db->post_question($_SESSION['id'],$_REQUEST['QuestionTitle'],$_REQUEST['QuestionBody'],$tag);
-    //echo $twig->render('ask.html',$params);        
-   // sleep(10);
+$qid = $_GET["qid"] ;
     
-    show_question($replyID);
-}
-function show_question($qid){
     global $twig;
     global $db;
     $question = $db->get_question_by_id($qid);
@@ -62,7 +50,6 @@ function show_question($qid){
  //   echo "</pre>";
     
     echo $twig->render('question.html',$params);
-}
 
 
 ?>

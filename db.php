@@ -27,6 +27,152 @@ class db {
 			oci_close($this->connection);
 		}
 	}
+
+
+//$sentence takes string, $tags take array,$start and $end should be formatted like'10-APR-14',$session_user is user id
+
+	public function search($sentence = null, $tags = null, $session_user = null, $start = null, $end = null) {
+		$i = 0;
+		
+		$score = 0;
+		//echo($session_user);
+		$query = "create table temp as select 0 as score, id, title, content from questions";
+		
+		if($session_user != null || $start != null || $end != null) {
+			$query = $query . " where ";
+		}
+		
+		if($session_user != null) {
+			$user = intval($session_user);
+			$query = $query . "asker = " . $user;
+			if($start != null || $end != null) {
+				$query = $query . " and ";
+			}
+		}
+		
+		if($start != null) {
+			$start = $this->convert_date($start);
+		}
+		if($end != null) {
+			$end = $this->convert_date($end);
+		}
+		if($start != null && $end != null) {
+			$query = $query . "DATE_TIME > TO_TIMESTAMP(:start) and TO_TIMESTAMP(:end) > DATE_TIME";
+			$stid = oci_parse($this->connection,$query);
+			oci_bind_by_name($stid, ":start", $start);
+			oci_bind_by_name($stid, ":end", $end);
+		} else if($start != null && $end == null) {
+			$query = $query . "DATE_TIME > TO_TIMESTAMP(:start)";
+			$stid = oci_parse($this->connection,$query);
+			oci_bind_by_name($stid, ":start", $start);
+		}else if($start == null && $end != null) {
+			$query = $query . "TO_TIMESTAMP(:end) > DATE_TIME";
+			$stid = oci_parse($this->connection,$query);
+			oci_bind_by_name($stid, ":end", $end);
+		} else {
+			$stid = oci_parse($this->connection,$query);
+		}
+		
+		oci_execute($stid);
+		
+		if($sentence != null) {
+			$to_match = explode(" ",$sentence);
+			foreach($to_match as $sen_match) {
+				var_dump(filter_var($sen_match, FILTER_SANITIZE_STRING));
+				$stid = oci_parse($this->connection,"update temp set score = score+10 where title like '%" . $sen_match."%' ");
+				//oci_bind_by_name($stid, ":thingy", "%" . $sen_match . "%");
+				oci_execute($stid);
+				var_dump(filter_var($sen_match, FILTER_SANITIZE_STRING));
+				$stid = oci_parse($this->connection,"update temp set score = score+1 where content like '%" . $sen_match."%' ");
+				//oci_bind_by_name($stid, ":thingy", "%" . $sen_match . "%");
+				oci_execute($stid);
+			}
+		}
+		
+		if($tags != null) {
+			foreach($tags as $tag_match) {
+				var_dump(filter_var($tag_match, FILTER_SANITIZE_STRING));
+				echo $tag_match;
+				$stid = oci_parse($this->connection,"update temp set score = score+10 where temp.id in (select belongs_to.QUESTION from category join belongs_to on belongs_to.CATEGORY = category.id where category.DESCRIPTION like '%" . $tag_match . "%') ");
+				//oci_bind_by_name($stid, ":thingy", "%" . $tag_match . "%");
+				
+				
+				oci_execute($stid);
+			}
+		}
+		
+		$stid = oci_parse($this->connection,"select * from temp order by score desc");
+		oci_execute($stid);
+		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$return[$i] = $result;
+			$i++;
+		}
+		
+		$stid = oci_parse($this->connection,"drop table temp");
+		oci_execute($stid);
+		
+		return $return;
+		
+	}
+	
+	public function convert_date($date) {
+		$return = substr($date,8,2);
+		$convert = substr($date,5,2);
+		$return = $return . "-" . jdmonthname($convert,2);
+		$return = $return . "-" . substr($date,2,2);
+		return $return;
+	}
+
+
+public function get_id($name){
+	$stid = oci_parse($this->connection, "select ID from USERS WHERE USER_NAME =:name");
+	oci_bind_by_name($stid, ":name", $name);
+	oci_execute($stid);
+	$result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS);
+	//print_r($result);
+	return $result['ID'];
+}
+public function get_ques_user_ans($replier){
+		$i = 0;
+		
+		$stid = oci_parse($this->connection, "select distinct questions.id, questions.title from replies, questions 
+								where replier = :replier and replies.REPLY_TO = questions.ID order by questions.ID desc");
+		oci_bind_by_name($stid, ":replier", $replier);
+		oci_execute($stid);
+		while (($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) != false) {
+			$return[$i] = $result;
+			$i++;
+		}
+		return $return;
+	}
+public function act_log($session_user) {
+		$i = 0;
+	//	echo($session_user);
+		$user = intval($session_user);
+		
+		$stid = oci_parse($this->connection,"create view ask as select 'asked a question' as act, DATE_TIME as date_time from questions where asker = " . $user);
+		oci_execute($stid);
+		$stid = oci_parse($this->connection,"create view reply as select 'answered to a question' as act, DATE_TIME as date_time from REPLIES where replier = " . $user);
+		oci_execute($stid);
+		$stid = oci_parse($this->connection,"create view get_ans as select 'own question answered' as act, replies.DATE_TIME as date_time from replies join questions on replies.reply_to = questions.ID where asker = " . $user);
+		oci_execute($stid);
+		
+		$stid = oci_parse($this->connection,"select * from (select * from ask union select * from reply union select * from get_ans) order by date_time desc");
+		oci_execute($stid);
+		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$return[$i] = $result;
+			$i++;
+		}
+		$stid = oci_parse($this->connection,"drop view ask");
+		oci_execute($stid);
+		$stid = oci_parse($this->connection,"drop view reply");
+		oci_execute($stid);
+		$stid = oci_parse($this->connection,"drop view get_ans");
+		oci_execute($stid);
+		
+		return $return;
+		
+	}
 	
 	public function authenticate($username, $password) {
 		$stid = oci_parse($this->connection,"select id from users where user_name = :username and password = :password");
@@ -40,17 +186,13 @@ class db {
 		
 		return $id;
 	}
-	
-	public function post_question($asker, $title, $content) {
-		$stid = oci_parse($this->connection,"select max(ID) from questions");
-		
+	public function post_question($asker, $title, $content, $tags) {
+		$stid = oci_parse($this->connection,"select max(ID) from questions");		
 		oci_execute($stid);
-		
 		$id = oci_fetch_array($stid,OCI_NUM+OCI_RETURN_NULLS);
-		
 		//print_r($id);
-		$neo_id = $id[0]+1;
 		
+		$neo_id = $id[0]+1;
 		$stid = oci_parse($this->connection,"insert into questions (Asker, Title, Content, Date_Time, ID) values (:asker, :title, :content, CURRENT_TIMESTAMP, :ID)");
 		
 		oci_bind_by_name($stid, ":asker", $asker);
@@ -58,9 +200,46 @@ class db {
 		oci_bind_by_name($stid, ":content", $content);
 		oci_bind_by_name($stid, ":ID", $neo_id);
 		
+		
 		oci_execute($stid);
+		
+		$pieces = explode(",", $tags);
+		foreach($pieces as $tag){
+			$this->tag_question($neo_id, $tag);
+		}
 		return $neo_id;
 	}
+	
+	//trying to add tags, given the id of question and string of tag, if tag not exist
+	// create tag and then give question the tag
+	public function tag_question($id,$tag){
+		$stid = oci_parse($this->connection, "select id from category where description = :tag");
+		oci_bind_by_name($stid,":tag",$tag);
+		oci_execute($stid);
+		$cid = oci_fetch_array($stid,OCI_NUM+OCI_RETURN_NULLS);
+		$neo_id = $cid[0];
+		
+		if($neo_id == null){
+		//we need first insert the tag into category table
+			$stid2 = oci_parse($this->connection,"select max(ID) from category");
+			oci_execute($stid2);
+			$cid = oci_fetch_array($stid2,OCI_NUM+OCI_RETURN_NULLS);
+			$neo_id = $cid[0]+1;
+			
+			$stid2 = oci_parse($this->connection,"insert into category (ID, Description) values (:id, :descrip)");
+			oci_bind_by_name($stid2,":id",$neo_id);
+			oci_bind_by_name($stid2,":descrip",$tag);
+			oci_execute($stid2);
+		}
+		
+		//just insert the relation into belongs_to table
+		$stid = oci_parse($this->connection,"insert into belongs_to (Question, Category) values (:id, :tagid)");
+		oci_bind_by_name($stid,":id",$id);
+		oci_bind_by_name($stid,":tagid",$neo_id);
+		oci_execute($stid);
+		
+		return $neo_id;
+	}	
 	public function get_profile ($asker) {
 		$i = 0;
 		
@@ -71,7 +250,7 @@ class db {
 		return $result;
 	}
 	
-	public function get_question_by_user ($asker) {
+		public function get_question_by_user ($asker) {
 		$i = 0;
 		
 		$stid = oci_parse($this->connection,"create view upvote as select count(Voter) as inc_score,Question from Vote_Question where Vote = 1 group by Question");
@@ -84,8 +263,10 @@ class db {
 												where questions.asker = :asker");
 		oci_bind_by_name($stid, ":asker", $asker);
 		oci_execute($stid);
-		$result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS); 
-			
+		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
+			$return[$i] = $result;
+			$i++;
+		}
 		
 		$stid = oci_parse($this->connection,"drop view upvote");
 		oci_execute($stid);
@@ -301,7 +482,7 @@ class db {
 		$stid = oci_parse($this->connection,"select max(ID) from users");
 		oci_execute($stid);
 		$id = oci_fetch_array($stid,OCI_NUM+OCI_RETURN_NULLS);
-		print_r($id);
+	//	print_r($id);
 		$neo_id = $id[0]+1;
 		$stid = oci_parse($this->connection,"insert into users (ID, User_Name, Password, Join_Date, User_type) values (:id, :name,:password, CURRENT_TIMESTAMP, 0)");
 		
@@ -314,36 +495,9 @@ class db {
 		return true;
 	}
 	
-	public function act_log($session_user) {
-		$i = 0;
-		
-		$user = intval($session_user);
-		
-		$stid = oci_parse($this->connection,"create view ask as select 'asked a question' as act, DATE_TIME as date_time from questions where asker = " . $user);
-		oci_execute($stid);
-		$stid = oci_parse($this->connection,"create view reply as select 'answered to a question' as act, DATE_TIME as date_time from REPLIES where replier = " . $user);
-		oci_execute($stid);
-		$stid = oci_parse($this->connection,"create view get_ans as select 'own question answered' as act, replies.DATE_TIME as date_time from replies join questions on replies.reply_to = questions.ID where asker = " . $user);
-		oci_execute($stid);
-		
-		$stid = oci_parse($this->connection,"select * from (select * from ask union select * from reply union select * from get_ans) order by date_time desc");
-		oci_execute($stid);
-		while($result = oci_fetch_array($stid,OCI_ASSOC+OCI_RETURN_NULLS)) {
-			$return[$i] = $result;
-			$i++;
-		}
-		$stid = oci_parse($this->connection,"drop view ask");
-		oci_execute($stid);
-		$stid = oci_parse($this->connection,"drop view reply");
-		oci_execute($stid);
-		$stid = oci_parse($this->connection,"drop view get_ans");
-		oci_execute($stid);
-		
-		return $return;
-		
-	}
 	
-	public function recommended_for_you ($session_user) {
+	
+public function recommended_for_you ($session_user) {
 		$i = 0;
 		
 		$user = intval($session_user);
@@ -359,7 +513,6 @@ class db {
 			$return[$i] = $result;
 			$i++;
 		}
-		
 		$stid = oci_parse($this->connection,"drop view raw_stuff");
 		oci_execute($stid);
 		$stid = oci_parse($this->connection,"drop view tag_score");

@@ -20,6 +20,17 @@
       <script src="js/html5shiv.js"></script>
       <script src="js/respond.min.js"></script>
     <![endif]-->
+    <script>
+      function clicked(qid){
+        var id;
+        document.getElementById(qid).submit();
+//        id = qid.id;
+      }
+      function openProfile(uid){
+       // alert(uid);
+//        document.getElementById(uid).submit();
+      }
+    </script>
   </head>
   <body>
         <!-- Top Navbar-->
@@ -31,28 +42,27 @@
 			        <h4 class="modal-title" id="myModalLabel">Advanced Search</h4>
 			      </div>
 			      <div class="modal-body">
-				        <form role="form">
+				        <form role="form" action="ad_search.php">
 		                    <div class="form-group">
-		                      <input type="text" class="form-control" id="QuestionTitle" placeholder="Search for this sentence...">
+		                      <input type="text" class="form-control" name="sentence" id="QuestionTitle" placeholder="Search for this sentence...">
 		                    </div>
 		                    <div class="form-group">
-		                      <input type="text" class="form-control" id="userTitle" placeholder="Enter user name you want to search...">
+		                      <input type="text" class="form-control" name="userName" id="userTitle" placeholder="Enter user name you want to search...">
 		                    </div>
 		                    <div class="form-group">
-		                      Start Date: <input type="date" class="form-control" id="startDate">		                      
+		                      Start Date: <input type="date" name="startDate" class="form-control" id="startDate">		                      
 		                    </div>
 		                    <div class="form-group">
-		                      End Date: <input type="date" class="form-control" id="startDate">		                      
+		                      End Date: <input type="date" name="endDate" class="form-control" id="startDate">		                      
 		                    </div>
 		                    <div class="form-group">
-		                      <input type="text" id="QuestionTags" class="form-control" value="" data-role="tagsinput" placeholder="Enter tags separated by commas..." />
+		                      <input type="text" id="QuestionTags" name="tags" class="form-control" value="" data-role="tagsinput" placeholder="Enter tags separated by commas..." />
 		                    </div>
+		                    <input type="button" class="btn btn-inverse" value="close" data-dismiss="modal">
+		            		<input type="submit" value="Submit" class="btn btn-inverse">        
 	                  </form>
 			      </div>
-			      <div class="modal-footer">
-			        <button type="button" class="btn btn-inverse" data-dismiss="modal">Close</button>
-			        <button type="Submit" class="btn btn-inverse">Search</button>
-			      </div>
+			      
 			    </div>
 			  </div>
 		</div> 
@@ -62,7 +72,7 @@
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-01">
                       <span class="sr-only">Toggle navigation</span>
                     </button>
-                    <a class="navbar-brand" href="home.html">Ask Albert</a>
+                    <a class="navbar-brand" href="index.php">Ask Albert</a>
                   </div>
                   <div class="collapse navbar-collapse" id="navbar-collapse-01">
                     <!-- List of page links -->
@@ -73,15 +83,18 @@
                     </ul>           
                     
                     <!-- Search Form-->
-                    <form class="navbar-form navbar-left" action="#" role="search">
+                    <form class="navbar-form navbar-left"  role="form" action="ad_search.php">
                       <div class="form-group">
+                        
                         <div class="input-group">
-                          
-                          <input class="form-control" id="navbarInput-01" type="search" placeholder="Search">
+                         
+                          <input class="form-control" name="sentence" type="text" placeholder="Search">
                           <span class="input-group-btn">
                             <button type="submit" class="btn"><span class="fui-search"></span></button>
-                          </span>            
+                          </span> 
+                        
                         </div>
+                        
                       </div>               
                     </form>
                     <a href="" data-toggle="modal" data-target="#myModal" class="navbar-text"><small>Advanced Search</small></a>              
@@ -99,14 +112,18 @@
                     <p>Top Questions</p> 
                   {% for item in replies %}
                   <div class="row">
-                      <div class="col-lg-3">
-                        <a href="question.html">{{item.Vote}}</a>
+                      <form id="{{item.Question}}" action="display_question.php">
+                      
+                      <div class="col-lg-12">
+                        <p><a style="cursor:pointer" onclick="clicked(this.id);" id="{{item.Question}}">{{item.Title}}</a></p>
+                        <input type="hidden" name="qid" value="{{item.Question}}" style="visibility:hidden;">
+						{% for tag in tags %}
+						<a class="qtag">{{item.Tag}}</a>
+						{% endfor %}                        
                       </div>
-                      <div class="col-lg-6">
-                        <p><a href="question.html">{{item.Title}}</a></p>
-                      </div>
+                      </form>
+                  </div>
 
-                  </div>  
                   <hr />
                   {% endfor %}
                 </div>
@@ -115,11 +132,8 @@
                     <p>Recommended For You </p>
                     {% for item in recommend %}
                     <div class="row">
-                      <div class="col-lg-3">
-                        <a href="#">{{item.Score}}</a>
-                      </div>
-                      <div class="col-lg-6">
-                        <p><a href="#">{{item.Title}}</a></p>
+                      <div class="col-lg-12">
+                        <p><a href="#" onclick="clicked();">{{item.Title}}</a></p>
                       </div>
 
                     </div>
@@ -131,10 +145,13 @@
                     <p>Leader Board</p>
                     <div class="list-group">
                       {% for item in leader %}
-                      <a href="#" class="list-group-item">
+                      <form action="get_profile.php" id="{{item.User}}">
+                      <a onclick="openProfile(this.id)" id="{{item.User}}" class="list-group-item">
                         {{item.Name}}
                         <span class="badge">{{item.Score}}</span>
+                         <input type="checkbox" name="User" value="{{item.User}}" style="visibility:hidden;">
                       </a>
+                      </form>
                       {% endfor %}
                     </div>
                 </div>

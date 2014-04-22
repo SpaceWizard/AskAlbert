@@ -16,6 +16,12 @@
     <link href="bootstrap/css/prettify.css" rel="stylesheet">
     <link href="css/docs.css" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="css/bootstrap-tagsinput.css">
+    <script>
+      function clicked(qid){
+        document.getElementById(qid).submit();
+//        id = qid.id;
+      }
+    </script>
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
     <!--[if lt IE 9]>
       <script src="js/html5shiv.js"></script>
@@ -24,66 +30,67 @@
     
   </head>
   <body>
-        <!-- Top Navbar-->
-     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-			  <div class="modal-dialog">
-			    <div class="modal-content">
-			      <div class="modal-header">
-			        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-			        <h4 class="modal-title" id="myModalLabel">Advanced Search</h4>
-			      </div>
-			      <div class="modal-body">
-				        <form role="form">
-		                    <div class="form-group">
-		                      <input type="text" class="form-control" id="QuestionTitle" placeholder="Search for this sentence...">
-		                    </div>
-		                    <div class="form-group">
-		                      <input type="text" class="form-control" id="userTitle" placeholder="Enter user name you want to search...">
-		                    </div>
-		                    <div class="form-group">
-		                      Start Date: <input type="date" class="form-control" id="startDate">		                      
-		                    </div>
-		                    <div class="form-group">
-		                      End Date: <input type="date" class="form-control" id="startDate">		                      
-		                    </div>
-		                    <div class="form-group">
-		                      <input type="text" id="QuestionTags" class="form-control" value="" data-role="tagsinput" placeholder="Enter tags separated by commas..." />
-		                    </div>
-	                  </form>
-			      </div>
-			      <div class="modal-footer">
-			        <button type="button" class="btn btn-inverse" data-dismiss="modal">Close</button>
-			        <button type="Submit" class="btn btn-inverse">Search</button>
-			      </div>
-			    </div>
-			  </div>
-		</div> 
+ <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+              <h4 class="modal-title" id="myModalLabel">Advanced Search</h4>
+            </div>
+            <div class="modal-body">
+                <form role="form" action="ad_search.php">
+                        <div class="form-group">
+                          <input type="text" class="form-control" name="sentence" id="QuestionTitle" placeholder="Search for this sentence...">
+                        </div>
+                        <div class="form-group">
+                          <input type="text" class="form-control" name="userName" id="userTitle" placeholder="Enter user name you want to search...">
+                        </div>
+                        <div class="form-group">
+                          Start Date: <input type="date" name="startDate" class="form-control" id="startDate">                          
+                        </div>
+                        <div class="form-group">
+                          End Date: <input type="date" name="endDate" class="form-control" id="startDate">                          
+                        </div>
+                        <div class="form-group">
+                          <input type="text" id="QuestionTags" name="tags" class="form-control" value="" data-role="tagsinput" placeholder="Enter tags separated by commas..." />
+                        </div>
+                        <input type="button" class="btn btn-inverse" value="close" data-dismiss="modal">
+                    <input type="submit" value="Submit" class="btn btn-inverse">        
+                    </form>
+            </div>
+            
+          </div>
+        </div>
+    </div> 
          <nav class="navbar navbar-inverse navbar-static-top navbar-lg" role="navigation">
                   <div class="container">
                   <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-01">
                       <span class="sr-only">Toggle navigation</span>
                     </button>
-                    <a class="navbar-brand" href="home.html">Ask Albert</a>
+                    <a class="navbar-brand" href="index.php">Ask Albert</a>
                   </div>
                   <div class="collapse navbar-collapse" id="navbar-collapse-01">
                     <!-- List of page links -->
                     <ul class="nav navbar-nav">           
                       <li><a href="discussion.php">Discussion</a></li>
                       <li><a href="ask.php">Ask A Question</a></li>
-                      <li class="active"><a href="profile.php">Profile</a></li>
+                      <li><a href="profile.php">Profile</a></li>
                     </ul>           
                     
                     <!-- Search Form-->
-                    <form class="navbar-form navbar-left" action="#" role="search">
+                    <form class="navbar-form navbar-left"  role="form" action="ad_search.php">
                       <div class="form-group">
+                        
                         <div class="input-group">
-                          
-                          <input class="form-control" id="navbarInput-01" type="search" placeholder="Search">
+                         
+                          <input class="form-control" name="sentence" type="text" placeholder="Search">
                           <span class="input-group-btn">
                             <button type="submit" class="btn"><span class="fui-search"></span></button>
-                          </span>            
+                          </span> 
+                        
                         </div>
+                        
                       </div>               
                     </form>
                     <a href="" data-toggle="modal" data-target="#myModal" class="navbar-text"><small>Advanced Search</small></a>              
@@ -92,7 +99,7 @@
                   </div><!-- /.navbar-collapse -->
                   </div>
             </nav><!-- /navbar -->
-       
+              
         <div class="container">
             <div class="row">
                 <div class="col-lg-6">
@@ -105,7 +112,16 @@
                 <div class="col-lg-6">
                   <h4>Your Activity</h4>
                   <ul class="list-group small">
-                    <li class="list-group-item">{{userActivity}}</li>
+                    {% for item in activity %}
+                    <li class="list-group-item"><div class="row">
+                      <div class="col-lg-10">
+                        {{item.Act}}
+                      </div>
+                      <div class="col-lg=2">
+                        {{item.Date}}
+                      </div>
+                    </div></li>
+                    {% endfor %}
                   </ul>
                 </div>
             </div>
@@ -113,39 +129,34 @@
               <div class="col-lg-6">
                 <div id="QuestionsAsked">
                   <h4>Questions you have asked</h4>
+                  {% for item in questionsAsked %}
+                  <form action="display_question.php" id="{{item.Id}}">
                   <div class="row">
-                      <div class="col-lg-3">
-                        <a href="question.html">{{questionViews}}</a>
-                      </div>
-                      <div class="col-lg-3">
-                        <a href="question.html">{{numAnswers}}</a>
-                      </div>
-                      <div class="col-lg-6">
-                        <p><a href="question.html">{{questionTitle}}</a></p>
-                        <input class="btn btn-inverse" type="button" value="{{tag}}">
+                      <div class="col-lg-12">
+                        <a style="cursor:pointer" onclick="clicked(this.id)" id="{{item.Id}}">{{item.Title}}</a>
+                        <input type="hidden" name="qid" value="{{item.Id}}" style="visibility:hidden;">  
                       </div>
                   </div>
+                  </form>
                   <hr />
+                  {% endfor %}
                 </div>
               </div>
               <div class="col-lg-6">
                 <h4>Questions you have answered</h4>
-                <div id="QuestionsAnswered">
+                  {% for item in answered %}    
+                  <form action="display_question.php" id="{{item.Id}}">
                   <div class="row">
-                      <div class="col-lg-3">
-                        <a href="question.html">{{views}}</a>
-                      </div>
-                      <div class="col-lg-3">
-                        <a href="question.html">{{answers}}</a>
-                      </div>
-                      <div class="col-lg-6">
-                        <p><a href="question.html">{{qtitle}}</a></p>
-                        <input class="btn btn-inverse" type="button" value="{{qtag}}">
+                      <div class="col-lg-12">
+                        <p><a  style="cursor:pointer" onclick="clicked(this.id)" id="{{item.Id}}">{{item.Title}}</a></p>
+                        <input type="hidden" name="qid" value="{{item.Id}}" style="visibility:hidden;">  
                       </div>
                   </div>
+                  </form>
                   <hr />
+                  {% endfor %}
                 </div>
-              </div>
+              
             </div>
         </div>
 

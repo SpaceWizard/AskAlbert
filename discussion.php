@@ -37,6 +37,7 @@ function discussion(){
         $params["replies"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
+        $params["replies"][$i]["Question"] = $replies[$i]["ID"];
         $params["replies"][$i]["Title"] = $replies[$i]["TITLE"];
         $params["replies"][$i]["Date"] = $replies[$i]["DATE_TIME"];
     }

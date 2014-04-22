@@ -55,7 +55,8 @@ function showHome(){
     global $db;
     $replies = $db->get_top_question();
     $leader = $db->leaderboard2();
-    $recommend = $db->recommended_for_you($_SESSION['username']);
+    $uid = $db -> get_id($_SESSION['username']);
+    $recommend = $db->recommended_for_you($uid);
     //$replies = $db->get_reply_by_question($qid);
     /*echo "<pre>";
     print_r($replies);
@@ -66,18 +67,27 @@ function showHome(){
     $params["numberLeader"] = count($leader);
     $params["numberRecommend"] = count($recommend);
     $params["replies"] = array();
-    for($i=0;$i<$params["numberAnswers"];$i++){
+    for($i=0;$i<21;$i++){
         $params["replies"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
         $params["replies"][$i]["Question"] = $replies[$i]["QUESTION"];
         $params["replies"][$i]["Title"] = $replies[$i]["TITLE"];
-        $params["replies"][$i]["Vote"] = $replies[$i]["VOTE"];
+     //   $params["replies"][$i]["Vote"] = $replies[$i]["VOTE"];
     }
-    for($i=0;$i<$params["numberLeader"];$i++){
+    $params["leader"] = array();
+    for($i=0;$i<21;$i++){
         $params["leader"][$i] = array();
+        $params["leader"][$i]["User"] = $leader[$i]["ID"];
         $params["leader"][$i]["Name"] = $leader[$i]["USER_NAME"];
         $params["leader"][$i]["Score"] = $leader[$i]["SCORE"];
+    }
+    $params["recommend"] = array();
+    for($i=0;$i<21;$i++){
+        $params["recommend"][$i] = array();
+        $params["recommend"][$i]["Question"] = $leader[$i]["QUESTION"];
+        $params["recommend"][$i]["Title"] = $leader[$i]["TITLE"];
+     //   $params["recommend"][$i]["Vote"] = $leader[$i]["VOTE"];
     }
  //   echo "<pre>";
  //   print_r($params);

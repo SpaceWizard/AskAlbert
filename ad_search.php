@@ -18,50 +18,44 @@ if(!isset($_SESSION['username'])){
         echo $twig->render('login.html',array());
     }
 }else{
-    profile();
+    discussion();
 }
 
-function profile(){
+function discussion(){
     global $twig;
     global $db;
-    $uid = $db->get_id($_SESSION['username']);
-    $profile = $db->get_profile($_SESSION['username']);
-    $question = $db->get_question_by_user($uid);
-   // echo($uid);
-    $userAnswer = $db -> get_ques_user_ans($uid);
-    $active = $db->act_log($uid);
+   // $replies = $db->get_recent_question();
+    /*echo "<pre>";
+    print_r($replies);
+    die();*/
     $params = array();
     $params["userName"] = $_SESSION['username'];
-    $params["userScore"] = $profile['SCORE'];
-    $params["joinDate"] = $profile['JOIN_DATE'];
-    $params["numberAnswers"] = count($active);
+    $startDate = $_REQUEST['startDate'];
+    $endDate = $_REQUEST['endDate'];
+    $name1 = $_REQUEST['userName'];
+    $sentence = $_REQUEST['sentence'];
+    $tags = $_REQUEST['tags'];
+    //echo($tags);
+    $u_id = $db -> get_id($name1);
+    //echo($u_id);
+    $replies = $db-> search($sentence,$tags,$u_id,$startDate,$endDate);
+    $params["numberAnswers"] = count($replies);
     //echo($params["numberAnswers"]);
-    $params["activity"] = array();
-    for($i=0;$i<7;$i++){
-        $params["activity"][$i] = array();
+    $params["replies"] = array();
+    for($i=0;$i<$params["numberAnswers"];$i++){
+        $params["replies"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
-        $params["activity"][$i]["Act"] = $active[$i]["ACT"];
-        $params["activity"][$i]["Date"] = substr(($active[$i]["DATE_TIME"]),0,10);
+        $params["replies"][$i]["Question"] = $replies[$i]["ID"];
+        $params["replies"][$i]["Title"] = $replies[$i]["TITLE"];
+        $params["replies"][$i]["Date"] = $replies[$i]["DATE_TIME"];
     }
-    //echo(count($question));
-    $params["questionsAsked"]=array();
-    for($i=0;$i<8;$i++){
-        $params["questionsAsked"][$i] = array();
-        //$params["replies"][i]["answerVotes"] = array();
-        //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
-        $params["questionsAsked"][$i]["Title"] = $question[$i]["TITLE"];
-        $params["questionsAsked"][$i]["Id"]= $question[$i]["ID"];
-    }
-    $params["answered"]=array();
-    for($i=0;$i<8;$i++){
-        $params["answered"][$i] = array();
-        //$params["replies"][i]["answerVotes"] = array();
-        //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
-        $params["answered"][$i]["Title"] = $question[$i]["TITLE"];
-        $params["answered"][$i]["Id"]= $question[$i]["ID"];
-    }
-    echo $twig->render('profile.html',$params);
+
+ //   echo "<pre>";
+ //   print_r($params);
+ //   echo "</pre>";
+    
+    echo $twig->render('search.html',$params);
 }
 
 
