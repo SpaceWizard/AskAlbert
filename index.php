@@ -70,7 +70,7 @@ function showHome(){
     $params["numberRecommend"] = count($recommend);
     $params["replies"] = array();
     $params["tags"] = array();
-    for($i=0;$i<21;$i++){
+    for($i=0;$i<count($replies);$i++){
         $params["replies"][$i] = array();
         //$params["replies"][i]["answerVotes"] = array();
         //$params["replies"][i]["replyID"] = $replies[i]["USER_ID"];
@@ -87,20 +87,26 @@ function showHome(){
             
 
         }
+        if($i>20){
+        	break;
+        }
       
      //   $params["replies"][$i]["Vote"] = $replies[$i]["VOTE"];
     }
     //print_r($gettags);
     
     $params["leader"] = array();
-    for($i=0;$i<21;$i++){
+    for($i=0;$i<count($leader);$i++){
         $params["leader"][$i] = array();
         $params["leader"][$i]["User"] = $leader[$i]["ID"];
         $params["leader"][$i]["Name"] = $leader[$i]["USER_NAME"];
         $params["leader"][$i]["Score"] = $leader[$i]["SCORE"];
+        if($i>20){
+        	break;
+        }
     }
     $params["recommend"] = array();
-    for($i=0;$i<21;$i++){
+    for($i=0;$i<count($recommend);$i++){
         $params["recommend"][$i] = array();
         $params["recommend"][$i]["Question"] = $recommend[$i]["QUESTION"];
         $gettags = $db->get_tag_by_question($recommend[$i]["QUESTION"]);
@@ -115,6 +121,9 @@ function showHome(){
         }
       
         $params["recommend"][$i]["Title"] = $recommend[$i]["TITLE"];
+        if($i>20){
+        	break;
+        }
      //   $params["recommend"][$i]["Vote"] = $leader[$i]["VOTE"];
     }
  //   echo "<pre>";
